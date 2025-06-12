@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Results - Emotion Detector</title>
+    <style>
+        body {
+            margin: 30px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #d3cce3, #e9e4f0);
+            color: #333;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .title {
+            font-size: xx-large;
+            font-weight: bold;
+            color: #5a189a;
+        }
+
+        .nav {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            font-size: xx-large;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .nav a:hover {
+            color: #5a189a;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 60px auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 12px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        h2 {
+            color: #5a189a;
+        }
+
+        .result-box {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f5f0ff;
+            border: 2px dashed #5a189a;
+            border-radius: 10px;
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #5a189a;
+        }
+
+        canvas {
+            margin-top: 40px;
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="title">Emotion Detector</div>
+        <div class="nav">
+            <a href="/">Home</a>
+            <a href="/results">Results</a>
+            <a href="/about">About</a>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="container">
+        <h2>🧠 Emotion Prediction Result</h2>
+        <div id="predictedEmotion" class="result-box">
+            {% if prediction %}
+                Predicted Emotion: {{ prediction }}
+            {% else %}
+                Detecting...
+            {% endif %}
+        </div>
+
+        <!-- Chart Canvas -->
+        <canvas id="emotionChart" width="400" height="200"></canvas>
+    </div>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Chart Script -->
+    <script>
+        const ctx = document.getElementById('emotionChart').getContext('2d');
+        const emotionChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Happy', 'Sad', 'Angry', 'Calm', 'Fearful', 'Neutral'],
+                datasets: [{
+                    label: 'Prediction Count',
+                    data: [12, 7, 4, 9, 3, 8],  // dummy data
+                    backgroundColor: [
+                        '#f1c40f',
+                        '#3498db',
+                        '#e74c3c',
+                        '#2ecc71',
+                        '#9b59b6',
+                        '#95a5a6'
+                    ],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Emotion Prediction Statistics',
+                        font: {
+                            size: 20
+                        }
+                    },
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        stepSize: 1
+                    }
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>
+
+
