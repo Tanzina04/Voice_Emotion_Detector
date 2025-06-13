@@ -115,6 +115,8 @@
     <!-- Dropzone JS -->
    <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
 <script>
+    const DROPZONE_ENDPOINT = "https://voice-emotion-detector.onrender.com/predict"; // ✅ Update with your backend Render URL
+
     let uploadedFile = null;
 
     Dropzone.options.audioDropzone = {
@@ -135,11 +137,16 @@
                     const formData = new FormData();
                     formData.append("file", uploadedFile);
 
-                    fetch("/predict", {
+                    fetch(DROPZONE_ENDPOINT, {
                         method: "POST",
                         body: formData
                     })
-                    .then(res => res.json())
+                    .then(res => {
+                        if (!res.ok) {
+                            throw new Error("Server error: " + res.statusText);
+                        }
+                        return res.json();
+                    })
                     .then(data => {
                         if (data.prediction) {
                             window.location.href = `/results?emotion=${encodeURIComponent(data.prediction)}`;
@@ -148,13 +155,14 @@
                         }
                     })
                     .catch(err => {
-                        alert("Error uploading file or predicting: " + err);
+                        alert("Error uploading file or predicting: " + err.message);
                     });
                 }
             });
         }
     };
 </script>
+
 
 </body>
 </html>
