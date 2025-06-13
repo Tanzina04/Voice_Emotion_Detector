@@ -7,6 +7,11 @@ app = Flask(__name__, template_folder='templates')
 UPLOAD_FOLDER = "uploads"
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+# Create uploads directory if it doesn't exist
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+# Load the trained model
 model = joblib.load("models/emotion_model.pkl")
 
 @app.route('/')
@@ -26,6 +31,7 @@ def results():
 def predict():
     if 'file' not in request.files:
         return jsonify({'error': 'No file uploaded'})
+    
     file = request.files['file']
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
     file.save(file_path)
@@ -38,5 +44,5 @@ def predict():
     return jsonify({'prediction': prediction})
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 10000))  # Render sets this PORT env variable
-    app.run(host='0.0.0.0', port=port)         # Bind to 0.0.0.0 so Render can access it
+    port = int(os.environ.get("PORT", 10000))  # Render uses this PORT env variable
+    app.run(host='0.0.0.0', port=port)
