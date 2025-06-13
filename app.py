@@ -1,21 +1,21 @@
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 import os
-from utilsfrom flask import Flask, render_template, request, jsonify
-from flask_cors import CORS
-import os
 import joblib
 from utils.extract_features import extract_features
 
 app = Flask(__name__, template_folder='templates')
-CORS(app)
+CORS(app)  # Enable Cross-Origin Resource Sharing
 
+# Set upload folder to temporary directory (safe for deployment on Render)
 UPLOAD_FOLDER = "/tmp/uploads"
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+# Create the upload folder if it doesn't exist
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+# Load the pre-trained emotion detection model
 model = joblib.load("models/emotion_model.pkl")
 
 @app.route('/')
@@ -48,6 +48,5 @@ def predict():
     return jsonify({'prediction': prediction})
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 10000))
+    port = int(os.environ.get("PORT", 10000))  # Required for Render
     app.run(host='0.0.0.0', port=port)
-
