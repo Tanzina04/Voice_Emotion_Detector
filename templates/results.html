@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuraVoice - Emotion Analysis Results</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0513;
+            --card-bg: rgba(25, 12, 45, 0.4);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-primary: #8a2be2;
+            --accent-secondary: #ff007f;
+            --accent-cyan: #00f5d4;
+            --text-main: #f8f9fa;
+            --text-muted: #a0aec0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: radial-gradient(circle at 50% 50%, #1e0b36 0%, var(--bg-color) 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Glowing orbs */
+        .glow-orb {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(138, 43, 226, 0.12) 0%, rgba(0,0,0,0) 70%);
+            top: 20%;
+            right: 10%;
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(40px);
+        }
+
+        /* Header Navigation */
+        header {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 30%, var(--accent-cyan) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--accent-secondary);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-secondary);
+            display: inline-block;
+        }
+
+        nav {
+            display: flex;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--card-border);
+            padding: 6px;
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover, nav a.active {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        nav a.active {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Main container */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 1;
+        }
+
+        .results-wrapper {
+            width: 100%;
+            max-width: 800px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        @media (min-width: 768px) {
+            .results-wrapper {
+                grid-template-columns: 1.1fr 1.9fr;
+            }
+        }
+
+        /* Glassmorphic Panel Card */
+        .glass-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            padding: 35px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .glass-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        }
+
+        /* Large Result display Card */
+        .emotion-showcase {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+
+
+        .emotion-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            text-transform: capitalize;
+            letter-spacing: -0.5px;
+        }
+
+        .emotion-desc {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-top: 10px;
+        }
+
+        /* Chart card styling */
+        .chart-card {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .chart-header {
+            font-size: 1.3rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 12px;
+        }
+
+        .chart-header-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent-cyan);
+        }
+
+        .chart-container {
+            width: 100%;
+            position: relative;
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Action Buttons */
+        .button-bar {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            text-decoration: none;
+            font-family: inherit;
+            font-size: 1.05rem;
+            font-weight: 700;
+            padding: 15px 35px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary:active {
+            transform: translateY(0);
+        }
+
+        /* Confidence ring */
+        .ring-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 12px 0 4px;
+        }
+
+        .ring-svg { transform: rotate(-90deg); }
+
+        .ring-bg { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 10; }
+
+        .ring-fill {
+            fill: none;
+            stroke-width: 10;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1.4s cubic-bezier(.4,0,.2,1);
+        }
+
+        .ring-label {
+            position: absolute;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .ring-percent {
+            font-size: 1.9rem;
+            font-weight: 800;
+            display: block;
+            line-height: 1;
+        }
+
+        .ring-text {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Tip card */
+        .tip-card {
+            grid-column: 1 / -1;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            backdrop-filter: blur(20px);
+            padding: 22px 28px;
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            animation: slideUp 0.5s ease 0.3s both;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .tip-icon { font-size: 1.8rem; flex-shrink: 0; }
+
+        .tip-body h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--accent-cyan);
+        }
+
+        .tip-body p {
+            font-size: 0.92rem;
+            color: var(--text-muted);
+            line-height: 1.55;
+        }
+
+        /* Button bar */
+        .button-bar {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            text-decoration: none;
+            font-family: inherit;
+            font-size: 1.0rem;
+            font-weight: 700;
+            padding: 14px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.13);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary:active { transform: translateY(0); }
+
+        .btn-share {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border: none;
+            box-shadow: 0 0 18px rgba(138,43,226,0.35);
+        }
+
+        .btn-share:hover {
+            box-shadow: 0 6px 24px rgba(138,43,226,0.6);
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border: none;
+        }
+
+        /* History panel */
+        .history-panel {
+            grid-column: 1 / -1;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            backdrop-filter: blur(20px);
+            padding: 22px 28px;
+        }
+
+        .history-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .history-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .history-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 30px;
+            padding: 7px 14px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: default;
+            transition: background 0.2s;
+        }
+
+        .history-chip:hover { background: rgba(255,255,255,0.09); }
+
+        .history-time {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .history-empty {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.25);
+            font-style: italic;
+        }
+
+        /* Sentiment Meter styling */
+        .sentiment-meter-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .sentiment-bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .sentiment-track {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            overflow: hidden;
+            display: flex;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .sentiment-fill-pos {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            transition: width 1s ease;
+        }
+
+        .sentiment-fill-neu {
+            height: 100%;
+            background: linear-gradient(90deg, #6b7280, #4b5563);
+            transition: width 1s ease;
+        }
+
+        .sentiment-fill-neg {
+            height: 100%;
+            background: linear-gradient(90deg, #ef4444, #dc2626);
+            transition: width 1s ease;
+        }
+
+        /* Dynamic Mood Avatar */
+        .avatar-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            margin-bottom: 12px;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .aura-glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 50%;
+            filter: blur(25px);
+            opacity: 0.7;
+            transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Aura Animations */
+        .glow-neutral {
+            background: radial-gradient(circle, #95a5a6 0%, rgba(149,165,166,0) 70%);
+            animation: auraPulse 4s infinite ease-in-out;
+        }
+        .glow-calm {
+            background: radial-gradient(circle, #2ecc71 0%, rgba(46,204,113,0) 70%);
+            animation: auraBreathe 6s infinite ease-in-out;
+        }
+        .glow-happy {
+            background: radial-gradient(circle, #f1c40f 0%, #ff007f 50%, rgba(255,0,127,0) 75%);
+            animation: auraEnergetic 2s infinite ease-in-out;
+        }
+        .glow-sad {
+            background: radial-gradient(circle, #3498db 0%, #1a365d 60%, rgba(26,54,93,0) 75%);
+            animation: auraDepressed 5s infinite ease-in-out;
+        }
+        .glow-angry {
+            background: radial-gradient(circle, #e74c3c 0%, #741b1b 60%, rgba(116,27,27,0) 75%);
+            animation: auraAngry 1.2s infinite ease-in-out;
+        }
+        .glow-fearful {
+            background: radial-gradient(circle, #9b59b6 0%, #4a154b 60%, rgba(74,21,75,0) 75%);
+            animation: auraFearful 1.5s infinite ease-in-out;
+        }
+        .glow-disgust {
+            background: radial-gradient(circle, #1abc9c 0%, #1e3a2b 60%, rgba(30,58,43,0) 75%);
+            animation: auraDisgust 3.5s infinite ease-in-out;
+        }
+        .glow-surprised {
+            background: radial-gradient(circle, #e67e22 0%, #ffedd5 60%, rgba(255,237,213,0) 75%);
+            animation: auraSurprised 2.5s infinite ease-in-out;
+        }
+
+        @keyframes auraPulse {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        @keyframes auraBreathe {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.15); opacity: 0.8; }
+        }
+        @keyframes auraEnergetic {
+            0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.8; }
+            50% { transform: scale(1.25) rotate(180deg); opacity: 1; }
+        }
+        @keyframes auraDepressed {
+            0%, 100% { transform: scale(0.95); opacity: 0.4; }
+            50% { transform: scale(1.05); opacity: 0.6; }
+        }
+        @keyframes auraAngry {
+            0%, 100% { transform: scale(1.1) translate(0, 0); opacity: 0.9; }
+            20% { transform: scale(1.2) translate(-3px, 2px); }
+            40% { transform: scale(1.15) translate(2px, -3px); }
+            60% { transform: scale(1.2) translate(-2px, -2px); }
+            80% { transform: scale(1.15) translate(3px, 3px); }
+        }
+        @keyframes auraFearful {
+            0%, 100% { transform: scale(1) translate(0,0); opacity: 0.7; }
+            25% { transform: scale(1.05) translate(-2px, -2px); }
+            75% { transform: scale(0.98) translate(2px, 2px); }
+        }
+        @keyframes auraDisgust {
+            0%, 100% { transform: scale(1) skewX(0deg); opacity: 0.6; }
+            50% { transform: scale(1.08) skewX(5deg); opacity: 0.8; }
+        }
+        @keyframes auraSurprised {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            20% { transform: scale(1.3); opacity: 1; }
+            80% { transform: scale(1.05); opacity: 0.8; }
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="glow-orb"></div>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="logo">
+            AuraVoice<span class="logo-dot"></span>
+        </div>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/results" class="active">Results</a>
+            <a href="/about">About</a>
+        </nav>
+    </header>
+
+    <!-- Main Results Section -->
+    <main>
+        <div class="results-wrapper">
+            
+            <!-- Glass showcase panel with confidence ring -->
+            <div class="glass-panel showcase-card">
+                <div class="emotion-showcase">
+                    <!-- Dynamic Mood Avatar -->
+                    <div class="avatar-container" style="position: relative; width: 120px; height: 120px;">
+                        <!-- Animated Aura Glow Sphere -->
+                        <div class="aura-glow" id="auraGlow" style="transition: all 1s ease;"></div>
+                        <!-- Interactive SVG Face -->
+                        <svg class="mood-svg" viewBox="0 0 100 100" style="position: relative; width: 100%; height: 100%; z-index: 2;">
+                            <!-- Head Base -->
+                            <circle cx="50" cy="50" r="45" id="avatarHead" fill="url(#neutralGrad)" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" style="transition: fill 1s ease;"/>
+                            <!-- Definitions for Gradients -->
+                            <defs>
+                                <radialGradient id="neutralGrad" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#a0aec0" />
+                                    <stop offset="100%" stop-color="#4a5568" />
+                                </radialGradient>
+                                <radialGradient id="calmGrad" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#2ecc71" />
+                                    <stop offset="100%" stop-color="#1abc9c" />
+                                </radialGradient>
+                                <radialGradient id="happyGrad" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#f1c40f" />
+                                    <stop offset="100%" stop-color="#ff007f" />
+                                </radialGradient>
+                                <radialGradient id="sadGrad" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#3498db" />
+                                    <stop offset="100%" stop-color="#1a365d" />
+                                </radialGradient>
+                                <radialGradient id="angryGrad" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#e74c3c" />
+                                    <stop offset="100%" stop-color="#741b1b" />
+                                </radialGradient>
+                                <radialGradient id="fearfulGrad" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#9b59b6" />
+                                    <stop offset="100%" stop-color="#4a154b" />
+                                </radialGradient>
+                                <radialGradient id="disgustGrad" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#1abc9c" />
+                                    <stop offset="100%" stop-color="#1e3a2b" />
+                                </radialGradient>
+                                <radialGradient id="surprisedGrad" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#e67e22" />
+                                    <stop offset="100%" stop-color="#ffedd5" />
+                                </radialGradient>
+                            </defs>
+                            
+                            <!-- Eyebrows -->
+                            <path id="leftEyebrow" d="M 30,35 Q 37,35 44,35" stroke="rgba(255,255,255,0.95)" stroke-width="3" stroke-linecap="round" fill="none" style="transition: d 0.8s ease;"/>
+                            <path id="rightEyebrow" d="M 56,35 Q 63,35 70,35" stroke="rgba(255,255,255,0.95)" stroke-width="3" stroke-linecap="round" fill="none" style="transition: d 0.8s ease;"/>
+                            
+                            <!-- Eyes -->
+                            <g id="eyes">
+                                <path id="leftEye" d="M 32,46 L 40,46" stroke="rgba(255,255,255,0.95)" stroke-width="3.5" stroke-linecap="round" fill="none" style="transition: d 0.8s ease;"/>
+                                <path id="rightEye" d="M 60,46 L 68,46" stroke="rgba(255,255,255,0.95)" stroke-width="3.5" stroke-linecap="round" fill="none" style="transition: d 0.8s ease;"/>
+                            </g>
+                            
+                            <!-- Mouth -->
+                            <path id="mouth" d="M 38,68 Q 50,68 62,68" stroke="rgba(255,255,255,0.95)" stroke-width="4" stroke-linecap="round" fill="none" style="transition: d 0.8s ease;"/>
+                        </svg>
+                    </div>
+
+                    <div style="font-size: 0.85rem; font-weight: 600; color: var(--accent-cyan); letter-spacing: 1.5px; text-transform: uppercase;">Acoustic Prediction</div>
+                    <h2 class="emotion-title" id="displayTitle">Neutral</h2>
+
+                    <!-- Confidence ring -->
+                    <div class="ring-wrapper" style="position:relative; width:120px; height:120px; margin: 12px 0 4px;">
+                        <svg class="ring-svg" width="120" height="120" viewBox="0 0 120 120">
+                        <svg class="ring-svg" width="120" height="120">
+                            <circle class="ring-bg" cx="60" cy="60" r="50" stroke="rgba(255,255,255,0.1)" stroke-width="8" fill="none"/>
+                            <circle class="ring-fill" id="ringFill" cx="60" cy="60" r="50"
+                                stroke-dasharray="314"
+                                stroke-dashoffset="314"
+                                stroke="var(--accent-cyan)"
+                                stroke-width="8"
+                                fill="none"
+                                stroke-linecap="round"/>
+                        </svg>
+                        <div class="ring-label" style="top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                            <span class="ring-percent" id="ringPercent">0%</span>
+                            <span class="ring-text">confidence</span>
+                        </div>
+                    </div>
+
+                    <p class="emotion-desc" id="displayDesc">A calm state without pronounced emotional arousal, characterized by steady pitch and speech rate.</p>
+                </div>
+            </div>
+
+            <!-- Glass probability statistics panel -->
+            <div class="glass-panel chart-card">
+                <div class="chart-header">
+                    <div class="chart-header-dot"></div>
+                    Confidence Probabilities (%)
+                </div>
+                <div class="chart-container">
+                    <canvas id="probabilityChart" style="max-height: 250px;"></canvas>
+                </div>
+            </div>
+
+            <!-- Dual-Modal Transcript & NLP Analysis -->
+            <div class="glass-panel dual-modal-card" id="dualModalCard" style="display: none; grid-column: 1 / -1;">
+                <div class="chart-header">
+                    <div class="chart-header-dot" style="background: var(--accent-secondary); box-shadow: 0 0 8px var(--accent-secondary);"></div>
+                    Dual-Modal Analysis (Acoustic + Text)
+                </div>
+                
+                <div class="dual-modal-grid" style="display: grid; grid-template-columns: 1fr; gap: 25px; margin-top: 15px;">
+                    <!-- Alignment Badge / Alert -->
+                    <div class="alignment-badge-card" id="alignmentCard" style="border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; background: rgba(255,255,255,0.01); transition: all 0.5s ease;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                            <span id="alignmentIcon" style="font-size: 1.6rem;">🎭</span>
+                            <h3 id="alignmentTitle" style="font-size: 1.15rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Sarcasm / Emotional Masking</h3>
+                        </div>
+                        <p id="alignmentDesc" style="font-size: 0.92rem; color: var(--text-muted); line-height: 1.6;">Vocal tone sounds happy, but the words spoken contain negative sentiment. This is a common pattern in sarcastic remarks.</p>
+                    </div>
+
+                    <!-- Transcript & Sentiment Row -->
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+                        <!-- Transcript -->
+                        <div>
+                            <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Transcribed Speech</h4>
+                            <div style="background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.05); padding: 15px 20px; border-radius: 12px; font-style: italic; color: #fff; font-size: 1.05rem; line-height: 1.5; min-height: 50px; display: flex; align-items: center;">
+                                <span style="font-size: 1.3rem; margin-right: 8px; color: rgba(255,255,255,0.15);">"</span>
+                                <span id="transcriptionText">Speech could not be transcribed</span>
+                                <span style="font-size: 1.3rem; margin-left: 8px; color: rgba(255,255,255,0.15);">"</span>
+                            </div>
+                        </div>
+
+                        <!-- Text Sentiment Meter -->
+                        <div class="sentiment-meter-container">
+                            <div class="sentiment-bar-label">
+                                <span>Text Sentiment Breakdown</span>
+                                <span id="sentimentLabelText" style="font-weight: 700; text-transform: capitalize;">Neutral</span>
+                            </div>
+                            <div class="sentiment-track">
+                                <div class="sentiment-fill-pos" id="sentimentPos" style="width: 0%;"></div>
+                                <div class="sentiment-fill-neu" id="sentimentNeu" style="width: 0%;"></div>
+                                <div class="sentiment-fill-neg" id="sentimentNeg" style="width: 0%;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: rgba(255,255,255,0.35); font-weight: 600; margin-top: 2px;">
+                                <span>🟢 Positive: <span id="valPos">0%</span></span>
+                                <span>⚪ Neutral: <span id="valNeu">0%</span></span>
+                                <span>🔴 Negative: <span id="valNeg">0%</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wellness tip card -->
+            <div class="tip-card">
+                <div class="tip-icon" id="tipIcon">💡</div>
+                <div class="tip-body">
+                    <h4>Wellness Insight</h4>
+                    <p id="tipText">Loading insight...</p>
+                </div>
+            </div>
+
+            <!-- Control buttons -->
+            <div class="button-bar">
+                <button class="btn-secondary btn-share" onclick="shareResult()">
+                    <span>🔗</span> Share Result
+                </button>
+                <a href="/" class="btn-secondary">
+                    <span>🔄</span> Analyze Another File
+                </a>
+            </div>
+
+            <!-- Emotion history panel -->
+            <div class="history-panel">
+                <div class="history-title">🕘 Recent Predictions</div>
+                <div class="history-list" id="historyList"></div>
+
+        </div>
+    </main>
+
+    <footer>
+        &copy; 2026 AuraVoice AI Inc. All rights reserved.
+    </footer>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Dictionary containing descriptors for RAVDESS emotions
+        const emotionDetails = {
+            "neutral": {
+                emoji: "😐",
+                desc: "Speech matches standard speech contours. No pronounced emotional spikes or pitch fluctuations are detected. Calm breathing cadence.",
+                color: "rgba(149, 165, 166, 0.85)",
+                border: "#95a5a6"
+            },
+            "calm": {
+                emoji: "😌",
+                desc: "Slow, soothing frequencies, with soft voice intensity and flat, peaceful intonations indicating low mental arousal and tranquility.",
+                color: "rgba(46, 204, 113, 0.85)",
+                border: "#2ecc71"
+            },
+            "happy": {
+                emoji: "😊",
+                desc: "High vibrational audio signature! Marked by swift speech tempos, elevated average fundamental frequency, and broad pitch ranges.",
+                color: "rgba(241, 196, 15, 0.85)",
+                border: "#f1c40f"
+            },
+            "sad": {
+                emoji: "😢",
+                desc: "Decreased vocal intensity, low average pitch range, and sluggish tempos with brief silences indicating depression or soft vocalizing.",
+                color: "rgba(52, 152, 219, 0.85)",
+                border: "#3498db"
+            },
+            "angry": {
+                emoji: "😡",
+                desc: "High speech power amplitude, forced articulation, accelerated voice rise times, and heavy frequency peaks indicating rage or high anxiety.",
+                color: "rgba(231, 76, 60, 0.85)",
+                border: "#e74c3c"
+            },
+            "fearful": {
+                emoji: "😨",
+                desc: "Trembling and unstable frequency pitch lines, highly elevated breathing rate indices, and high voice pitch heights pointing to severe stress.",
+                color: "rgba(155, 89, 182, 0.85)",
+                border: "#9b59b6"
+            },
+            "disgust": {
+                emoji: "🤢",
+                desc: "Characterized by harsh or raspy vocal elements, lower pitch registers, flat inflections, and occasionally breathy voice dynamics.",
+                color: "rgba(26, 188, 156, 0.85)",
+                border: "#1abc9c"
+            },
+            "surprised": {
+                emoji: "😮",
+                desc: "Abrupt, steep rises in voice pitch, high intensity energy spikes, and highly dynamic articulation indicating startled cognitive state.",
+                color: "rgba(230, 126, 34, 0.85)",
+                border: "#e67e22"
+            }
+        };
+
+        // Parse query parameters (fallback)
+        const urlParams = new URLSearchParams(window.location.search);
+        let predictedEmotion = (urlParams.get("emotion") || "neutral").toLowerCase().trim();
+        const rawProb = urlParams.get("probabilities");
+
+        // ── Load Analysis from sessionStorage ─────────────────────
+        let sessionData = null;
+        try {
+            sessionData = JSON.parse(sessionStorage.getItem("last_analysis"));
+        } catch(e) {
+            console.error("Failed to parse sessionStorage analysis:", e);
+        }
+
+        let transcription = "";
+        let sentiment = { label: "neutral", score: 0, scores: { pos: 0, neu: 1, neg: 0 } };
+        let alignment = { type: "acoustic_only", title: "Acoustic Analysis Only", description: "Vocal features extracted directly from audio signal. Text analysis is unavailable.", badge_color: "var(--text-muted)" };
+
+        if (sessionData) {
+            predictedEmotion = (sessionData.prediction || predictedEmotion).toLowerCase().trim();
+            transcription = sessionData.transcription || "";
+            sentiment = sessionData.text_sentiment || sentiment;
+            alignment = sessionData.alignment || alignment;
+        }
+
+        // Set layout variables based on prediction
+        const targetDetails = emotionDetails[predictedEmotion] || emotionDetails["neutral"];
+        
+        // Setup and update the dynamic mood avatar shapes and colors
+        function updateAvatar(emotion) {
+            const head = document.getElementById("avatarHead");
+            const leftEye = document.getElementById("leftEye");
+            const rightEye = document.getElementById("rightEye");
+            const leftBrow = document.getElementById("leftEyebrow");
+            const rightBrow = document.getElementById("rightEyebrow");
+            const mouth = document.getElementById("mouth");
+            const glow = document.getElementById("auraGlow");
+
+            if (!head || !leftEye || !rightEye || !leftBrow || !rightBrow || !mouth || !glow) return;
+
+            // Remove existing animation classes
+            glow.className = "aura-glow";
+            glow.classList.add("glow-" + emotion);
+
+            // Set head color gradient
+            head.setAttribute("fill", `url(#${emotion}Grad)`);
+
+            // Morph eyebrows, eyes, and mouth paths
+            if (emotion === "happy") {
+                leftEye.setAttribute("d", "M 31,48 Q 36,40 41,48");
+                rightEye.setAttribute("d", "M 59,48 Q 64,40 69,48");
+                leftBrow.setAttribute("d", "M 28,32 Q 36,26 44,32");
+                rightBrow.setAttribute("d", "M 56,32 Q 64,26 72,32");
+                mouth.setAttribute("d", "M 35,62 Q 50,78 65,62");
+            } else if (emotion === "calm") {
+                leftEye.setAttribute("d", "M 32,48 Q 36,46 40,48");
+                rightEye.setAttribute("d", "M 60,48 Q 64,46 68,48");
+                leftBrow.setAttribute("d", "M 30,34 Q 37,33 44,34");
+                rightBrow.setAttribute("d", "M 56,34 Q 63,33 70,34");
+                mouth.setAttribute("d", "M 38,64 Q 50,70 62,64");
+            } else if (emotion === "sad") {
+                leftEye.setAttribute("d", "M 30,48 Q 36,52 42,48");
+                rightEye.setAttribute("d", "M 58,48 Q 64,52 70,48");
+                leftBrow.setAttribute("d", "M 30,32 Q 37,38 44,36");
+                rightBrow.setAttribute("d", "M 56,36 Q 63,38 70,32");
+                mouth.setAttribute("d", "M 38,68 Q 50,56 62,68");
+            } else if (emotion === "angry") {
+                leftEye.setAttribute("d", "M 31,48 L 39,48");
+                rightEye.setAttribute("d", "M 61,48 L 69,48");
+                leftBrow.setAttribute("d", "M 28,32 L 42,42");
+                rightBrow.setAttribute("d", "M 58,42 L 72,32");
+                mouth.setAttribute("d", "M 35,68 Q 50,54 65,68");
+            } else if (emotion === "fearful") {
+                leftEye.setAttribute("d", "M 31,43 A 5,5 0 1,1 41,43");
+                rightEye.setAttribute("d", "M 59,43 A 5,5 0 1,1 69,43");
+                leftBrow.setAttribute("d", "M 30,36 Q 37,32 44,38");
+                rightBrow.setAttribute("d", "M 56,38 Q 63,32 70,36");
+                mouth.setAttribute("d", "M 42,66 Q 50,60 58,66");
+            } else if (emotion === "disgust") {
+                leftEye.setAttribute("d", "M 30,48 L 42,46");
+                rightEye.setAttribute("d", "M 58,46 L 70,48");
+                leftBrow.setAttribute("d", "M 28,36 Q 36,38 44,34");
+                rightBrow.setAttribute("d", "M 56,32 Q 64,30 72,36");
+                mouth.setAttribute("d", "M 36,68 Q 45,62 64,66");
+            } else if (emotion === "surprised") {
+                leftEye.setAttribute("d", "M 30,44 A 6,6 0 1,1 42,44");
+                rightEye.setAttribute("d", "M 58,44 A 6,6 0 1,1 70,44");
+                leftBrow.setAttribute("d", "M 28,26 Q 36,22 44,26");
+                rightBrow.setAttribute("d", "M 56,26 Q 64,22 72,26");
+                mouth.setAttribute("d", "M 42,68 A 8,8 0 1,1 58,68");
+            } else { // neutral
+                leftEye.setAttribute("d", "M 32,46 L 40,46");
+                rightEye.setAttribute("d", "M 60,46 L 68,46");
+                leftBrow.setAttribute("d", "M 30,35 Q 37,35 44,35");
+                rightBrow.setAttribute("d", "M 56,35 Q 63,35 70,35");
+                mouth.setAttribute("d", "M 38,64 Q 50,64 62,64");
+            }
+        }
+
+        updateAvatar(predictedEmotion);
+        document.getElementById("displayTitle").textContent = predictedEmotion;
+        document.getElementById("displayDesc").textContent = targetDetails.desc;
+        
+        // Color-glow for target showcase
+        const showcaseCard = document.querySelector(".showcase-card");
+        showcaseCard.style.borderColor = targetDetails.border;
+        showcaseCard.style.boxShadow = `0 20px 50px ${targetDetails.color.replace('0.85', '0.15')}`;
+
+        // ── Update Transcription & NLP UI ──────────────────────
+        const dualModalCard = document.getElementById("dualModalCard");
+        if (transcription) {
+            dualModalCard.style.display = "block";
+            document.getElementById("transcriptionText").textContent = transcription;
+            
+            // Set Alignment badge
+            const alignmentCard = document.getElementById("alignmentCard");
+            const alignmentTitle = document.getElementById("alignmentTitle");
+            const alignmentDesc = document.getElementById("alignmentDesc");
+            const alignmentIcon = document.getElementById("alignmentIcon");
+            
+            alignmentTitle.textContent = alignment.title;
+            alignmentDesc.textContent = alignment.description;
+            alignmentCard.style.borderColor = alignment.badge_color;
+            alignmentCard.style.boxShadow = `0 10px 25px ${alignment.badge_color}25`; // 15% opacity glow
+            
+            // Set icon based on alignment type
+            const icons = {
+                sarcasm: "🎭",
+                vocal_distress: "😟",
+                controlled_expression: "🤐",
+                subtle_emotion: "🤔",
+                congruent_positive: "🟢",
+                congruent_negative: "🔴",
+                congruent_neutral: "⚪",
+                acoustic_only: "🎙️"
+            };
+            alignmentIcon.textContent = icons[alignment.type] || "🎙️";
+            
+            // Setup Text Sentiment metrics
+            const scores = sentiment.scores || { pos: 0, neu: 1, neg: 0 };
+            const pctPos = Math.round(scores.pos * 100);
+            const pctNeu = Math.round(scores.neu * 100);
+            const pctNeg = Math.round(scores.neg * 100);
+            
+            document.getElementById("sentimentPos").style.width = pctPos + "%";
+            document.getElementById("sentimentNeu").style.width = pctNeu + "%";
+            document.getElementById("sentimentNeg").style.width = pctNeg + "%";
+            
+            document.getElementById("valPos").textContent = pctPos + "%";
+            document.getElementById("valNeu").textContent = pctNeu + "%";
+            document.getElementById("valNeg").textContent = pctNeg + "%";
+            
+            const sentimentLabelText = document.getElementById("sentimentLabelText");
+            sentimentLabelText.textContent = sentiment.label;
+            
+            if (sentiment.label === "positive") {
+                sentimentLabelText.style.color = "#10b981";
+            } else if (sentiment.label === "negative") {
+                sentimentLabelText.style.color = "#ef4444";
+            } else {
+                sentimentLabelText.style.color = "var(--text-muted)";
+            }
+        } else {
+            dualModalCard.style.display = "none";
+        }
+
+        // Build chart data
+        let chartLabels = [];
+        let chartData = [];
+        let chartColors = [];
+        let chartBorders = [];
+
+        let probMap = null;
+        if (sessionData && sessionData.probabilities) {
+            probMap = sessionData.probabilities;
+        } else if (rawProb) {
+            try {
+                probMap = JSON.parse(decodeURIComponent(rawProb));
+            } catch (e) {
+                console.error("Error parsing probabilities:", e);
+            }
+        }
+
+        if (probMap) {
+            // Sort categories by probability
+            const sortedProbs = Object.entries(probMap).sort((a, b) => b[1] - a[1]);
+            
+            sortedProbs.forEach(([label, value]) => {
+                chartLabels.push(label.charAt(0).toUpperCase() + label.slice(1));
+                chartData.push(Math.round(value * 100));
+                
+                const details = emotionDetails[label.toLowerCase()] || emotionDetails["neutral"];
+                chartColors.push(details.color);
+                chartBorders.push(details.border);
+            });
+        } else {
+            fallbackChart();
+        }
+
+        function fallbackChart() {
+            chartLabels = ['Neutral', 'Calm', 'Happy', 'Sad', 'Angry', 'Fearful', 'Disgust', 'Surprised'];
+            chartData = [0, 0, 0, 0, 0, 0, 0, 0];
+            const targetIdx = chartLabels.findIndex(l => l.toLowerCase() === predictedEmotion);
+            if (targetIdx !== -1) {
+                chartData[targetIdx] = 100;
+            }
+            chartLabels.forEach(label => {
+                const details = emotionDetails[label.toLowerCase()] || emotionDetails["neutral"];
+                chartColors.push(details.color);
+                chartBorders.push(details.border);
+            });
+        }
+
+        // Draw horizontal Chart.js bar chart
+        const ctx = document.getElementById('probabilityChart').getContext('2d');
+        const probabilityChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    data: chartData,
+                    backgroundColor: chartColors,
+                    borderColor: chartBorders,
+                    borderWidth: 1.5,
+                    borderRadius: 6,
+                    barThickness: 18
+                }]
+            },
+            options: {
+                indexAxis: 'y', // Makes the chart horizontal
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` Confidence: ${context.parsed.x}%`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)',
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.4)',
+                            callback: function(value) {
+                                return value + "%";
+                            }
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#fff',
+                            font: {
+                                size: 13,
+                                weight: '600',
+                                family: "'Outfit', sans-serif"
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        // ── Confidence Ring ─────────────────────────────────────────
+        const topConfidence = chartData.length > 0 ? chartData[0] : 0; // already sorted desc
+        const ringFill = document.getElementById('ringFill');
+        const ringPercent = document.getElementById('ringPercent');
+        const circumference = 314; // 2π × 50
+        
+        let topVal = topConfidence;
+        if (sessionData && sessionData.probabilities) {
+            topVal = Math.round((sessionData.probabilities[predictedEmotion] || 0) * 100);
+        } else if (rawProb) {
+            try {
+                const pm = JSON.parse(decodeURIComponent(rawProb));
+                topVal = Math.round((pm[predictedEmotion] || 0) * 100);
+            } catch(e) {}
+        }
+        setTimeout(() => {
+            const offset = circumference - (topVal / 100) * circumference;
+            ringFill.style.strokeDashoffset = offset;
+            ringFill.style.stroke = targetDetails.border;
+            ringPercent.textContent = topVal + '%';
+            ringPercent.style.color = targetDetails.border;
+        }, 200);
+
+        // ── Wellness Tips per emotion ────────────────────────────────
+        const wellnessTips = {
+            happy:     { icon: '🌟', tip: 'Your energy is radiant! Ride this positive wave — call a friend, start a creative project, or share your joy with someone today.' },
+            calm:      { icon: '🍃', tip: 'Your mind sounds serene. Use this peaceful state to meditate, journal, or set meaningful intentions for the week ahead.' },
+            neutral:   { icon: '⚖️', tip: 'Balanced and grounded. This is a great state for problem-solving, making decisions, or deep focus work.' },
+            sad:       { icon: '💙', tip: "It's okay to feel this way. Try going for a walk, listening to uplifting music, or reaching out to someone you trust." },
+            angry:     { icon: '🔥', tip: 'Channel that energy constructively. Try deep breathing (4-7-8 method), a short workout, or writing down what is bothering you.' },
+            fearful:   { icon: '🛡️', tip: 'You are safe. Ground yourself with the 5-4-3-2-1 technique: name 5 things you see, 4 you feel, 3 you hear, 2 you smell, 1 you taste.' },
+            disgust:   { icon: '🧹', tip: 'Something feels off. Take a step back from the situation, create some physical space, and return to it with fresh eyes.' },
+            surprised: { icon: '✨', tip: 'Unexpected moments keep life interesting! Take a breath, absorb this new information, and embrace the spontaneity.' }
+        };
+        const tipData = wellnessTips[predictedEmotion] || wellnessTips['neutral'];
+        document.getElementById('tipIcon').textContent = tipData.icon;
+        document.getElementById('tipText').textContent = tipData.tip;
+
+        // ── Share Result ─────────────────────────────────────────────
+        function shareResult() {
+            const pct = topVal + '%';
+            let text = `🎙️ AuraVoice Analysis:\n• Voice Emotion: ${predictedEmotion.toUpperCase()} (${pct} confidence)\n`;
+            if (transcription) {
+                text += `• Transcript: "${transcription}"\n`;
+                text += `• Text Sentiment: ${sentiment.label.toUpperCase()} (score: ${sentiment.score})\n`;
+                text += `• Psychological Alignment: ${alignment.title}\n`;
+            }
+            text += `\nWellness Insight: ${tipData.tip}\n\nTry it yourself → ${window.location.origin}`;
+
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => {
+                    const btn = document.querySelector('.btn-share');
+                    btn.innerHTML = '<span>✅</span> Copied!';
+                    setTimeout(() => { btn.innerHTML = '<span>🔗</span> Share Result'; }, 2500);
+                });
+            } else {
+                alert(text);
+            }
+        }
+
+        // ── Prediction History (localStorage) ────────────────────────
+        const HISTORY_KEY = 'auravoice_history';
+        function loadHistory() {
+            try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; }
+            catch(e) { return []; }
+        }
+        function saveHistory(h) {
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(h));
+        }
+
+        // Append current result
+        const history = loadHistory();
+        history.unshift({
+            emotion: predictedEmotion,
+            emoji: targetDetails.emoji,
+            confidence: topVal,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+        if (history.length > 10) history.pop(); // keep last 10
+        saveHistory(history);
+
+        // Render history chips
+        const historyList = document.getElementById('historyList');
+        if (history.length === 0) {
+            historyList.innerHTML = '<span class="history-empty">No predictions yet.</span>';
+        } else {
+            historyList.innerHTML = history.map((h, i) => `
+                <div class="history-chip" title="${h.confidence}% confidence" style="${i === 0 ? 'border-color:' + targetDetails.border : ''}">
+                    <span>${h.emoji}</span>
+                    <span style="text-transform:capitalize">${h.emotion}</span>
+                    <span class="history-time">${h.time}</span>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

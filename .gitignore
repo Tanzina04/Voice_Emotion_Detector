@@ -1,0 +1,18 @@
+﻿# Python cache / compiled files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.sqlite3
+# Virtual environments
+venv/
+env/
+.venv/
+# VSCode / IDE
+.vscode/
+.idea/
+# OS files
+Thumbs.db
+.DS_Store
+# Secret files (if any)
+*.env
